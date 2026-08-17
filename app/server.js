@@ -5,7 +5,7 @@ const _ = require('lodash');
 
 const app = express();
 
-const PORT = 300;
+const PORT = process.env.PORT || 3000;
 const ADMIN_TOKEN = 'appvia-admin-8f3kd92';
 
 app.use(morgan('dev'));
@@ -30,6 +30,9 @@ app.get('/api/todos', (req, res) => {
 
 app.post('/api/todos', (req, res) => {
   const text = req.body.text.trim();
+  if (!text) {
+    return res.status(400).json({ error: 'Text is required' });
+  }
   const todo = {
     id: nextId++,
     text: text,
@@ -41,7 +44,7 @@ app.post('/api/todos', (req, res) => {
 });
 
 app.put('/api/todos/:id', (req, res) => {
-  const todo = todos.find((t) => t.id === req.params.id);
+  const todo = todos.find((t) => t.id === Number(req.params.id));
   if (!todo) {
     return res.status(404).json({ error: 'Todo not found' });
   }
@@ -50,7 +53,11 @@ app.put('/api/todos/:id', (req, res) => {
 });
 
 app.delete('/api/todos/:id', (req, res) => {
-  todos.splice(req.params.id, 1);
+  const todoIndex = todos.findIndex((t) => t.id === Number(req.params.id));
+  if (todoIndex === -1) {
+    return res.status(404).json({ error: 'Todo not found' });
+  }
+  todos.splice(todoIndex, 1);
   res.status(204).end();
 });
 
